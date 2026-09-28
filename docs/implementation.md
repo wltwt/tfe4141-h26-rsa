@@ -12,9 +12,12 @@ $$
 
 Here, M is the message, e is the exponent, and n is the modulus. Our design uses up to 256-bit operands. The same hardware can decrypt by using the private exponent.
 
+We select modulus $n=pq$, where $n<2^{256}$, which in this project will be supplied by the testbench. 
+
+
 ## Optimizations for hardware
 
-**Square-and-multiply** reduces the number of multiplications needed. Starting with x = 1, we read the exponent from most significant to least significant bit: square x, then multiply by M if the bit is 1.
+**Square-and-multiply** reduces the number of multiplications needed. Starting with $x = 1$, we read the exponent from most significant to least significant bit: square $x$, then multiply by $M$ if the bit is 1.
 
 We also use the identity
 
@@ -22,7 +25,8 @@ $$
 (a\cdot b)\bmod n = \big((a\bmod n)\cdot(b\bmod n)\big)\bmod n
 $$
 
-to reduce intermediate results after each multiplication. This avoids storing the enormous full value of M^e. Reduced values fit within 256 bits, although internal arithmetic can require more bits.
+to reduce intermediate results after each multiplication. This avoids storing the enormous full value of $M^e$. Reduced values fit within 256 bits, although internal arithmetic can require more bits.
+
 
 ## Montgomery multiplication
 
@@ -37,28 +41,61 @@ $$
 A Montgomery product computes:
 
 $$
-\operatorname{MonPro}(A,B) = ABR^{-1} \bmod n
+\text{MonPro}(A,B) = ABR^{-1} \bmod n
 $$
 
 Therefore, multiplying two Montgomery-form values gives their product in Montgomery form. We convert the message once, perform the exponentiation in this form, and convert the result back at the end. Reduction uses the power-of-two structure of R; the exact hardware implementation is still to be chosen.
+
+A benefit of montgomery comes from reduction of extensive hardware needed for comparing values, insted we only have to identify if a number is odd, which is a fairly cheap operation.
+
 
 ## Proposed architecture
 
 Starting with one reusable Montgomery unit per RSA core.
 
-- Registers hold the converted message M_bar, intermediate result x_bar, exponent, and modulus.
+- Registers hold the converted message `M_bar`, intermediate result `x_bar`, exponent, and modulus.
 - Operand multiplexers select the inputs to the Montgomery unit.
-- An FSM and bit counter control the sequence and wait for each operation to finish.
+
 
 The core does
 
--  Convert M to M_bar and initialize x_bar to R mod n (the representation of 1).
--  For each exponent bit, from most significant to least significant
-   - Square: x_bar = MonPro(x_bar, x_bar).
-   - If the bit is 1: x_bar = MonPro(x_bar, M_bar).
--  Convert back: result = MonPro(x_bar, 1).
+- Convert M to M_bar and initialize x_bar to R mod n (the representation of 1).
+- For each exponent bit, from most significant to least significant
+   - Square: `x_bar = MonPro(x_bar, x_bar)`.
+   - If the bit is 1: `x_bar = MonPro(x_bar, M_bar)`.
+- Convert back: `result = MonPro(x_bar, 1)`.
 
 The same unit is reused for squaring and multiplication. A Montgomery operation may take many clock cycles; one algorithm step does not imply one clock cycle.
+
+
+For the implementation we use the following hardware
+
+- registers (holds `M_bar`, `x_bar`, exponent and modulus)
+- operand-mux
+- montgomery-unit
+- counter (8-bit?) that keeps track of the current bit
+- FSM
+
+
+### FSM
+
+It should on a high level do
+
+1. Wait for message (need a busy line probably)
+2. Initialize message (convert to montgomery)
+3. Square numbers
+4. Check for exponent bit (1=do MonPro->save result, 0=skip)
+5. Next bit
+6. Convert back (MonPro(x_bar, 1))
+7. Return result (wait for receiver to accept)
+
+The main goal (complemented by a counter) is therefore to control the sequence and wait for each operation to finish.
+
+## Inside Montgomery Unit
+
+- A separate accumulator $S$ which holds intermediate values for the Montgomery operations, this should reset between each multiplication sequence.
+- A and B-registers for each of the terms that are being multiplied.
+- Should probably have its own FSM.
 
 ## Parallelism and next steps
 
