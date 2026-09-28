@@ -1,3 +1,18 @@
+# Project Specific .gitignore
+
+
+# So that each team memeber can choose their environment of choice for now
+.vscode 
+
+
+
+
+
+
+#############################
+# Default python .gitignore #
+#############################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
