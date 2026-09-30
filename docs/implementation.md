@@ -97,6 +97,11 @@ The main goal (complemented by a counter) is therefore to control the sequence a
 - A and B-registers for each of the terms that are being multiplied.
 - Should probably have its own FSM.
 
+## Hardware Considerations
+
+A wide adder may limit the clock frequency. A narrower, reused adder can shorten the critical path and reduce area, at the cost of more cycles per Montgomery operation.
+
+
 ## Parallelism and next steps
 
 We expect to process around 500 independent messages. Multiple RSA cores could process different messages simultaneously, with input distribution and ordered output collection.
