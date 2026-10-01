@@ -5,9 +5,11 @@ Requirements:
   - 500 messages are required to be sent. 
 
 
-
+We use 2 cycles per bit, so for a 256 bit signal we get 2 * 256 = 512 cycles from the bits.
+In addition 
 Number of control steps (states in the FSM controlling the computations) = 8 states
 
+$N_monPro = k + h + 1$
 
 ## Optimization
 It is important that we use as much of the available logic as posssible to get the most efficient design.
