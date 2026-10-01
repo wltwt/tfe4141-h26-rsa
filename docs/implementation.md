@@ -93,9 +93,26 @@ The main goal (complemented by a counter) is therefore to control the sequence a
 
 ## Inside Montgomery Unit
 
-- A separate accumulator $S$ which holds intermediate values for the Montgomery operations, this should reset between each multiplication sequence.
+- A separate accumulator $S$ which holds intermediate values for the Montgomery operations, this  resets between each multiplication sequence.
 - A and B-registers for each of the terms that are being multiplied.
-- Should probably have its own FSM.
+- Should implement its own FSM
+
+For the final step in the sequence it will check if $S\geq n$, such that
+
+$$
+S_{\text{final}} =
+\begin{cases}
+S-n &  S \ge n\\
+S & S<n.
+\end{cases}
+$$
+
+Since we are working with unsigned integers the subtractor is able to tell if $S<n$ occurs in the final comparison step, due to the result being a negative number in that case. Therefore, if the FSM receives `borrow=1`, it sends a signal `load_s=0` which results in the final subtraction not being stored as the final result, then it proceeds to sending a `done`-signal which the external FSM then takes care of the next steps for. 
+
+In the case of $S\geq n$, we end up with a positive number in the final $(S-n)$-correction. Meaning `borrow=0`, we then store the result of $S-n$ into $S$ as the resulting value.
+
+
+
 
 ## Hardware Considerations
 
