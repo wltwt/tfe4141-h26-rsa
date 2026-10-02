@@ -34,25 +34,25 @@ The RSA implementation uses **square-and-multiply**.
 For an exponent with $k$ bits and Hamming weight $h$ (number of 1-bits):
 
 $$
-N_{\text{MonPro}} = k + h + 1
+N_{\text{MonPro}} = k + h + 1 + 1
 $$
 
 where:
 
 - $k = 256$ bits
 - $h \approx 128$ one-bits for a typical 256-bit exponent
+- $+1$ accounts for the first conversion from Montgomery form
 - $+1$ accounts for the final conversion from Montgomery form
-
 Therefore:
 
 $$
-N_{\text{MonPro}} = 256 + 128 + 1 = 385
+N_{\text{MonPro}} = 256 + 128 + 1 + 1= 386
 $$
 
 The estimated total number of cycles is then:
 
 $$
-N_{\text{cycles}} = 385 \times 515
+N_{\text{cycles}} = 386 \times 515
 $$
 
 $$
