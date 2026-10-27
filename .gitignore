@@ -11,6 +11,7 @@
 /pytests/
 tempCodeRunnerFile.py
 TFE4141_DDS1*/
+resources/
 
 # Python environments, caches and build output
 .env
