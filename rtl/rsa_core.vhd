@@ -19,7 +19,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-entity rsa_core is
+entity RSA_core is
 	generic (
 		-- Users to add parameters here
 		C_BLOCK_SIZE          : integer := 256
@@ -61,30 +61,84 @@ entity rsa_core is
 		key_e_d                 :  in std_logic_vector(C_BLOCK_SIZE-1 downto 0);
 		key_n                   :  in std_logic_vector(C_BLOCK_SIZE-1 downto 0);
 		rsa_status              : out std_logic_vector(31 downto 0)
+	
+		
+	  
 
 	);
-end rsa_core;
+end RSA_core;
 
-architecture rtl of rsa_core is
+architecture rtl of RSA_core is
+
+    signal exp_msgout_valid : std_logic;
+    signal exp_msgout_data  : std_logic_vector(C_BLOCK_SIZE-1 downto 0);
+
+    signal ready_int : std_logic;
+
+    signal last_reg : std_logic;
+    signal busy     : std_logic;
 
 begin
-	i_exponentiation : entity work.exponentiation
-		generic map (
-			C_block_size => C_BLOCK_SIZE
-		)
-		port map (
-			message   => msgin_data  ,
-			key       => key_e_d     ,
-			valid_in  => msgin_valid ,
-			ready_in  => msgin_ready ,
-			ready_out => msgout_ready,
-			valid_out => msgout_valid,
-			result    => msgout_data ,
-			modulus   => key_n       ,
-			clk       => clk         ,
-			reset_n   => reset_n
-		);
 
-	msgout_last  <= msgin_last;
-	rsa_status   <= (others => '0');
+    ------------------------------------------------------------------
+    -- Exponentiation engine
+    ------------------------------------------------------------------
+    i_exponentiation : entity work.exponentiation
+        generic map (
+            C_block_size => C_BLOCK_SIZE
+        )
+        port map (
+            message   => msgin_data,
+            key       => key_e_d,
+
+            valid_in  => msgin_valid,
+            ready_in  => ready_int,
+
+            ready_out => msgout_ready,
+            valid_out => exp_msgout_valid,
+
+            result    => exp_msgout_data,
+
+            modulus   => key_n,
+
+            clk       => clk,
+            reset_n   => reset_n
+        );
+
+    ------------------------------------------------------------------
+    -- Connect handshake
+    ------------------------------------------------------------------
+    msgin_ready <= ready_int;
+
+    ------------------------------------------------------------------
+    -- Store msgin_last
+    ------------------------------------------------------------------
+    process(clk, reset_n)
+    begin
+        if reset_n = '0' then
+            last_reg <= '0';
+
+        elsif rising_edge(clk) then
+
+            if msgin_valid = '1' and ready_int = '1' then
+                last_reg <= msgin_last;
+            end if;
+
+        end if;
+    end process;
+
+    ------------------------------------------------------------------
+    -- Outputs
+    ------------------------------------------------------------------
+    msgout_valid <= exp_msgout_valid;
+    msgout_data  <= exp_msgout_data;
+    msgout_last  <= last_reg;
+
+    ------------------------------------------------------------------
+    -- Status register
+    ------------------------------------------------------------------
+    busy <= not ready_int;
+
+    rsa_status <= (31 downto 1 => '0') & busy;
+
 end rtl;
