@@ -1,16 +1,9 @@
 # TFE4141 RSA FPGA
 
-Minimal VHDL project for the PYNQ-Z1 FPGA (`xc7z020clg400-1`).
+Alpha VHDL project for the PYNQ-Z1 FPGA (`xc7z020clg400-1`). Project generation and the recorded simulation use Vivado 2025.2 with Zynq-7000 device support. All HDL files use VHDL-2008.
 
-```text
-rtl/          Editable VHDL sources
-sim/          Testbenches (initially empty)
-constraints/  Future pin and timing constraints
-scripts/      create_project.tcl
-vivado/       Generated local projects, ignored by Git
-```
 
-# Setup Guide
+## Setup
 
 ```sh
 git clone https://github.com/wltwt/tfe4141-h26-rsa.git
@@ -19,23 +12,33 @@ vivado -mode batch -source scripts/create_project.tcl
 vivado -mode gui vivado/rsa/rsa.xpr
 ```
 
-**Sources are referenced directly, not copied.** Saving a source file in Vivado
-edits the repository file that Git tracks. Put `.vhd` or `.vhdl` files directly
-in `rtl/` or `sim/`, and `.xdc` files directly in `constraints/`; the script does
-not search subdirectories. When using Vivado's **Add Sources**, leave **Copy
-sources into project** unchecked. Create new files in these repository folders.
+The design top is `rsa_core`. For the time being `exponentiation_tb` was used to verfiy the design as proof of concept. Later iterations will implement the jupyter interface and precalculated r-values.
 
-The design top is `rsa_core`; change the corresponding line in the Tcl script
-when needed. The existing starter still computes message XOR modulus.
 
-After adding/removing files or changing project settings, close Vivado and
-regenerate. Save source edits first, then move the old project to an unused
-backup name:
+Add new files by using `add sources` in vivado. Regenerating will also pick up latest update in the repo.
+
 
 ```sh
 mv vivado/rsa vivado/rsa.previous
 vivado -mode batch -source scripts/create_project.tcl
 ```
 
-On Windows, move the folder with Explorer or PowerShell. Ordinary source edits
-only need saving and rerunning the relevant Vivado operation.
+## Alpha status
+
+The recorded XSim run in `sim/README.md` passes four 8-bit cases using the actual exponentiation and Montgomery modules: `5^3 mod 13 = 8`, `5^0 mod 13 = 1`, `5^1 mod 13 = 5`, and `7^3 mod 13 = 5`.
+
+
+Full `rsa_core` constant wiring and ARM/integration-kit support remain unfinished in the current iteration.
+
+## Packaging for delivery
+
+Ensure you have `zip` installed, then on linux run from root folder:
+```sh
+./scripts/package.sh
+```
+
+The script creates a new `dist/rsa-alpha-YYYYMMDD-HHMMSS.zip` containing
+`README.md`, `rtl/`, `sim/`, `constraints/`, and the setup script for vivado.
+
+It packages the current saved files, including uncommitted and untracked source
+files. Generated Vivado projects and repository metadata are not included.

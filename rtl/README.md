@@ -1,3 +1,3 @@
-Put editable `.vhd` and `.vhdl` sources directly here. Vivado references them
-in place and uses VHDL-2008. The current top is `rsa_core`; the two starter
-modules are unchanged and still compute message XOR modulus.
+The design top is `rsa_core`. The alpha testbench instantiates `exponentiation` and its `montgomery_core` directly.
+
+See the root README for simulation instructions and current verification coverage.
