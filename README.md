@@ -12,8 +12,7 @@ vivado -mode batch -source scripts/create_project.tcl
 vivado -mode gui vivado/rsa/rsa.xpr
 ```
 
-The design top is `rsa_core`. For the time being `exponentiation_tb` was used to verfiy the design as proof of concept. Later iterations will implement the jupyter interface and precalculated r-values.
-
+The design top is `rsa_core`. 
 
 Add new files by using `add sources` in vivado. Regenerating will also pick up latest update in the repo.
 
@@ -27,6 +26,7 @@ vivado -mode batch -source scripts/create_project.tcl
 
 The recorded XSim run in `sim/README.md` passes four 8-bit cases using the actual exponentiation and Montgomery modules: `5^3 mod 13 = 8`, `5^0 mod 13 = 1`, `5^1 mod 13 = 5`, and `7^3 mod 13 = 5`.
 
+For the time being `exponentiation_tb` was used to verfiy the design as proof of concept. Later iterations will implement the jupyter interface and precalculated r-values.
 
 Full `rsa_core` constant wiring and ARM/integration-kit support remain unfinished in the current iteration.
 
